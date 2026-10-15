@@ -1,558 +1,330 @@
 <!DOCTYPE html>
 <html lang="vi">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dragon Ball Memory Game - Boss Battle</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-image: url('img/nen1.png');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            background-color: #1a1a2e;
+            font-family: 'Arial', sans-serif;
+        }
+
+        /* ----- VÙNG CHƠI CHÍNH ----- */
+        .game-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* Khu vực BOSS & Thanh máu */
+        .boss-section {
+            background: #0f172a;
+            padding: 15px;
+            border-radius: 15px;
+            margin-bottom: 15px;
+            border: 2px solid #ff4757;
+            width: 100%;
+            max-width: 500px;
+        }
+
+        .boss-info {
+            display: flex;
+            justify-content: space-between;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #ff4757;
+            font-size: 0.9rem;
+        }
+
+        .combo-text {
+            color: #ffd32a;
+            font-size: 1rem;
+            font-weight: 900;
+            text-shadow: 0 0 8px #ff9f43;
+            animation: pop 0.3s ease;
+        }
+
+        .hp-bar-container {
+            width: 100%;
+            height: 20px;
+            background: #2f3542;
+            border-radius: 5px;
+            position: relative;
+            overflow: hidden;
+            border: 1px solid #ff4757;
+        }
+
+        .hp-bar {
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #ff4757, #ff6b81);
+            transition: width 0.3s ease-out;
+        }
+
+        #hp-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-weight: bold;
+            font-size: 0.8rem;
+            color: #fff;
+            text-shadow: 1px 1px 2px #000;
+        }
+
+        /* Thanh trạng thái chứa ngọc */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #162447;
+            padding: 10px 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #0f3460;
+            width: 100%;
+            max-width: 500px;
+            gap: 10px;
+        }
+
+        .timer {
+            font-size: 1rem;
+            font-weight: bold;
+            color: #00d2d3;
+        }
+
+        .dragon-balls-collection {
+            display: flex;
+            gap: 5px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .ball-slot {
+            width: 25px;
+            height: 25px;
+            border-radius: 50%;
+            background: #2b2b36;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 0.6rem;
+            font-weight: bold;
+            border: 1px solid #444;
+        }
+
+        .ball-slot.active {
+            background: #ff9f43;
+            color: #fff;
+            border-color: #ffff00;
+            box-shadow: 0 0 5px #ff9f43;
+        }
+
+        /* Lưới bài */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .card {
+            aspect-ratio: 3/4;
+            background-color: #e43f5a;
+            border-radius: 5px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 2px solid #fff;
+            overflow: hidden;
+            position: relative;
+        }
+
+        .card img {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: fill !important;
+            display: block;
+        }
+
+        .card.flipped {
+            background-color: #0f3460;
+            color: #ff9f43;
+        }
+
+        .card.matched {
+            background-color: #1f4068;
+            visibility: hidden;
+        }
+
+        /* ----- CÁC BẢNG ĐIỀU KHIỂN & HIỂN THỊ (RESPONSIVE) ----- */
+        .side-panel {
+            background: rgba(15, 23, 42, 0.9);
+            border-radius: 15px;
+            padding: 15px;
+            color: white;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            z-index: 900;
+        }
+        
+        .panel-title {
+            text-align: center;
+            margin-top: 0;
+            margin-bottom: 10px;
+            padding-bottom: 5px;
+            font-size: 1.1rem;
+        }
+
+        /* Desktop Layout (Màn hình lớn) */
+        @media (min-width: 1024px) {
+            #item-panel {
+                position: fixed; right: 20px; top: 15%; width: 220px;
+                border: 2px solid #fbbf24;
+            }
+            #leaderboard-panel {
+                position: fixed; left: 20px; top: 50%; transform: translateY(-50%); width: 250px;
+                border: 2px solid #fbbf24;
+            }
+            #live-score-panel {
+                position: fixed; right: 20px; top: 50%; transform: translateY(-50%); width: 220px;
+                border: 2px solid #3b82f6; display: none;
+            }
+            .game-container {
+                margin-top: 50px;
+            }
+        }
+
+        /* Mobile Layout (Màn hình nhỏ) */
+        @media (max-width: 1023px) {
+            body {
+                padding-bottom: 200px; /* Chừa không gian cuộn */
+            }
+            /* Gộp các bảng lại và đặt xuống dưới cùng màn hình */
+            .mobile-panels-container {
+                display: flex;
+                flex-direction: column;
+                gap: 10px;
+                width: 95%;
+                margin: 20px auto;
+            }
+            .side-panel {
+                position: static !important;
+                width: 100% !important;
+                transform: none !important;
+                border: 2px solid #fbbf24;
+            }
+            #item-panel { order: 1; }
+            #live-score-panel { order: 2; border-color: #3b82f6;}
+            #leaderboard-panel { order: 3; }
+        }
+
+        #item-panel .items-wrap {
+            display: flex; justify-content: space-around; margin-top: 10px;
+        }
+        .item-btn {
+            cursor: pointer; opacity: 0.3; transition: 0.3s; text-align: center;
+        }
+        .item-btn.active { opacity: 1; }
+
+        /* Leaderboard & Score Styles */
+        .panel-title.gold { color: #fbbf24; border-bottom: 1px solid #fbbf24; }
+        .panel-title.blue { color: #60a5fa; border-bottom: 1px solid #3b82f6; }
+        
+        #leaderboard-list { margin: 10px 0; font-size: 0.9rem; }
+        .leader-item { padding: 6px; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
+        #clear-btn { width: 100%; background: #ef4444; border: none; padding: 8px; color: white; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 0.9rem; }
+        .score-row { display: flex; justify-content: space-between; margin: 8px 0; font-size: 1rem; font-weight: bold; }
+
+        /* ----- OVERLAYS & MODALS ----- */
+        .overlay {
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0, 0, 0, 0.9);
+            display: flex; justify-content: center; align-items: center;
+            opacity: 0; pointer-events: none; transition: opacity 0.3s ease;
+            z-index: 999;
+        }
+        .overlay.show { opacity: 1; pointer-events: auto; }
+
+        .modal {
+            display: flex; flex-direction: column; align-items: center;
+            background: #162447; padding: 20px; border-radius: 15px;
+            text-align: center; border: 3px solid #ffd32a;
+            max-width: 90%; width: 350px; color: #ffffff;
+        }
+        .modal h2 { font-size: 1.5rem; margin-bottom: 15px; color: #ffd32a; }
+        .modal p { margin-bottom: 15px; font-size: 1rem; }
+        .modal button { background: #ff4757; color: white; border: none; padding: 10px 20px; font-size: 1rem; border-radius: 5px; cursor: pointer; }
+        
+        .shenron-pic { display: none; font-size: 4rem; margin-bottom: 15px; animation: float 2s ease-in-out infinite; }
+        
+        input#player-name { padding: 10px; width: 90%; border-radius: 5px; margin-bottom: 15px; border: none; outline: none; }
+
+        /* Bảng cài đặt */
+        #settings-icon {
+            position: fixed; bottom: 15px; right: 15px; font-size: 25px; cursor: pointer; z-index: 2000;
+        }
+        #settings-panel {
+            position: fixed; bottom: 50px; right: 15px; background: #1e293b; padding: 15px;
+            border-radius: 10px; color: white; display: none; z-index: 2000; border: 1px solid #475569;
+        }
+        #settings-panel label { display: block; margin: 8px 0; font-size: 0.9rem; }
+        #settings-panel input[type="range"] { width: 100px; vertical-align: middle; margin-left: 5px;}
+        #settings-panel button { margin-top: 10px; width: 100%; background: #475569; border: none; padding: 5px; color: white; border-radius: 3px; cursor: pointer;}
+
+        /* Hiệu ứng Rung toàn màn hình */
+        .shake-effect { animation: screenShake 0.5s ease infinite; }
+
+        /* Keyframes */
+        @keyframes pop { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+        @keyframes screenShake {
+            0% { transform: translate(1px, 1px) rotate(0deg); }
+            10% { transform: translate(-1px, -2px) rotate(-1deg); }
+            20% { transform: translate(-3px, 0px) rotate(1deg); }
+            30% { transform: translate(0px, 2px) rotate(0deg); }
+            40% { transform: translate(1px, -1px) rotate(1deg); }
+            50% { transform: translate(-1px, 2px) rotate(-1deg); }
+            60% { transform: translate(-3px, 1px) rotate(0deg); }
+            70% { transform: translate(2px, 1px) rotate(-1deg); }
+            80% { transform: translate(-1px, -1px) rotate(1deg); }
+            90% { transform: translate(2px, 2px) rotate(0deg); }
+            100% { transform: translate(1px, -2px) rotate(-1deg); }
+        }
+        @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(-10px); } 100% { transform: translateY(0px); } }
+    </style>
 </head>
-<style>
-    * {
-        box-sizing: border-box;
-        margin: 0;
-        padding: 0;
-    }
-
-    body {
-        /* Đổi đường dẫn ảnh tại đây */
-        background-image: url('img/nen1.png');
-
-        /* Các thuộc tính này đảm bảo ảnh luôn đẹp */
-        background-size: cover;
-        /* Phủ kín toàn bộ màn hình */
-        background-position: center;
-        /* Luôn lấy tâm ảnh làm chuẩn */
-        background-repeat: no-repeat;
-        /* Không lặp lại ảnh */
-        background-attachment: fixed;
-        /* Giữ ảnh cố định khi cuộn trang */
-
-        /* Đảm bảo chữ vẫn dễ đọc trên nền ảnh */
-        background-color: #1a1a2e;
-    }
-
-    .game-container {
-        width: 100%;
-        max-width: 600px;
-        margin: 0 auto;
-        /* Đảm bảo container chính luôn nằm giữa màn hình */
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        /* Căn giữa tất cả các thành phần con theo chiều ngang */
-    }
-
-    .game-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        /* Giữ lưới 4 cột */
-        gap: 12px;
-        width: 100%;
-        max-width: 500px;
-        /* Giới hạn độ rộng lưới để bài không bị quá to */
-        margin: 0 auto;
-    }
-
-    /* Khu vực BOSS & Thanh máu */
-    /* Tăng độ rộng tổng thể cho Boss section */
-    .boss-section {
-        background: #0f172a;
-        padding: 20px;
-        /* Tăng padding để thanh máu bên trong không bị sát mép */
-        border-radius: 15px;
-        margin-bottom: 25px;
-        /* Tăng khoảng cách xuống dưới */
-        border: 2px solid #ff4757;
-        width: 100%;
-        max-width: 500px;
-        /* Nới rộng thanh máu ra thêm */
-    }
-
-    .boss-info {
-        display: flex;
-        justify-content: space-between;
-        font-weight: bold;
-        margin-bottom: 8px;
-        color: #ff4757;
-    }
-
-    .combo-text {
-        color: #ffd32a;
-        font-size: 1.2rem;
-        font-weight: 900;
-        text-shadow: 0 0 8px #ff9f43;
-        animation: pop 0.3s ease;
-    }
-
-    .hp-bar-container {
-        width: 100%;
-        height: 25px;
-        background: #2f3542;
-        border-radius: 5px;
-        position: relative;
-        overflow: hidden;
-        border: 1px solid #ff4757;
-    }
-
-    .hp-bar {
-        width: 100%;
-        height: 100%;
-        background: linear-gradient(90deg, #ff4757, #ff6b81);
-        transition: width 0.3s ease-out;
-    }
-
-    #hp-text {
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        font-weight: bold;
-        font-size: 0.9rem;
-        color: #fff;
-        text-shadow: 1px 1px 2px #000;
-    }
-
-    /* Thanh trạng thái chứa ngọc */
-    /* Nới rộng thanh thời gian và ngọc rồng */
-    .status-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        background: #162447;
-        padding: 15px 25px;
-        /* Tăng padding để thanh thời gian rộng hơn */
-        border-radius: 10px;
-        margin-bottom: 30px;
-        /* Tạo khoảng cách tách biệt với lưới bài */
-        border: 2px solid #0f3460;
-        width: 100%;
-        max-width: 500px;
-        /* Đồng bộ độ rộng với thanh máu */
-        gap: 20px;
-        /* Thêm khoảng cách giữa bên trái (Thời gian) và bên phải (Ngọc) */
-    }
-
-    .timer {
-        font-size: 1.1rem;
-        font-weight: bold;
-        color: #00d2d3;
-    }
-
-    .dragon-balls-collection {
-        display: flex;
-        gap: 8px;
-        /* Tăng nhẹ khoảng cách giữa các viên ngọc */
-    }
-
-    .ball-slot {
-        width: 35px;
-        /* Tăng nhẹ kích thước viên ngọc */
-        height: 35px;
-        border-radius: 50%;
-        background: #2b2b36;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        font-size: 0.8rem;
-        font-weight: bold;
-        border: 2px solid #444;
-    }
-
-    .ball-slot.active {
-        background: #ff9f43;
-        color: #fff;
-        border-color: #ffff00;
-        box-shadow: 0 0 10px #ff9f43;
-    }
-
-    /* Lưới bài */
-    .game-grid {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
-    }
-
-    .card {
-        aspect-ratio: 3/4;
-        background-color: #e43f5a;
-        border-radius: 8px;
-        cursor: pointer;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        border: 3px solid #fff;
-        /* THÊM DÒNG NÀY ĐỂ ẢNH KHÔNG BỊ TRÀN RA NGOÀI KHI BO GÓC */
-        overflow: hidden;
-        /* Cần thiết để đảm bảo thẻ chứa ảnh có kích thước chuẩn */
-        position: relative;
-    }
-
-    .card img {
-        width: 100% !important;
-        height: 100% !important;
-        object-fit: fill !important;
-        /* Thay 'cover' bằng 'fill' để nó ép ảnh giãn theo khung, bất chấp tỉ lệ gốc */
-        display: block;
-    }
-
-    .card.flipped {
-        background-color: #0f3460;
-        color: #ff9f43;
-    }
-
-    .card.matched {
-        background-color: #1f4068;
-        visibility: hidden;
-    }
-
-    /* Màn hình thông báo */
-    .overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background: rgba(0, 0, 0, 0.9);
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        opacity: 0;
-        pointer-events: none;
-        transition: opacity 0.3s ease;
-        z-index: 999;
-    }
-
-    .overlay.show {
-        opacity: 1;
-        pointer-events: auto;
-    }
-
-    .modal {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        background: #162447;
-        padding: 30px;
-        border-radius: 15px;
-        text-align: center;
-        border: 3px solid #ffd32a;
-        max-width: 400px;
-        color: #ffffff;
-        /* Đổi toàn bộ chữ trong modal thành màu trắng */
-    }
-
-    /* Đảm bảo các tiêu đề và đoạn văn trong modal cũng là màu trắng */
-    /* Chỉ dòng tiêu đề có màu vàng */
-    #modal-title {
-        color: #ffd32a !important;
-    }
-
-    /* Nội dung thông báo bên dưới giữ màu trắng */
-    #modal-message {
-        color: #ffffff !important;
-    }
-
-    .modal h2 {
-        font-size: 1.8rem;
-        margin-bottom: 15px;
-        color: #ffd32a;
-    }
-
-    .modal p {
-        margin-bottom: 20px;
-        font-size: 1.1rem;
-    }
-
-    .shenron-pic {
-        display: none;
-        font-size: 5rem;
-        margin-bottom: 20px;
-        animation: float 2s ease-in-out infinite;
-    }
-
-    .modal button {
-        background: #ff4757;
-        color: white;
-        border: none;
-        padding: 10px 25px;
-        font-size: 1rem;
-        border-radius: 5px;
-        cursor: pointer;
-    }
-
-    /* Hiệu ứng Rung toàn màn hình khi gọi Rồng Thần */
-    .shake-effect {
-        animation: screenShake 0.5s ease infinite;
-    }
-
-    /* Các Animation phụ trợ */
-    @keyframes pop {
-        0% {
-            transform: scale(0.5);
-            opacity: 0;
-        }
-
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
-    }
-
-    @keyframes screenShake {
-        0% {
-            transform: translate(1px, 1px) rotate(0deg);
-        }
-
-        10% {
-            transform: translate(-1px, -2px) rotate(-1deg);
-        }
-
-        20% {
-            transform: translate(-3px, 0px) rotate(1deg);
-        }
-
-        30% {
-            transform: translate(0px, 2px) rotate(0deg);
-        }
-
-        40% {
-            transform: translate(1px, -1px) rotate(1deg);
-        }
-
-        50% {
-            transform: translate(-1px, 2px) rotate(-1deg);
-        }
-
-        60% {
-            transform: translate(-3px, 1px) rotate(0deg);
-        }
-
-        70% {
-            transform: translate(2px, 1px) rotate(-1deg);
-        }
-
-        80% {
-            transform: translate(-1px, -1px) rotate(1deg);
-        }
-
-        90% {
-            transform: translate(2px, 2px) rotate(0deg);
-        }
-
-        100% {
-            transform: translate(1px, -2px) rotate(-1deg);
-        }
-    }
-
-    @keyframes float {
-        0% {
-            transform: translateY(0px);
-        }
-
-        50% {
-            transform: translateY(-10px);
-        }
-
-        100% {
-            transform: translateY(0px);
-        }
-    }
-
-    /* Bảng xếp hạng */
-    #leaderboard-panel {
-        position: fixed;
-        /* Cố định vị trí */
-        left: 20px;
-        /* Cách lề trái 20px */
-        top: 50%;
-        /* Đẩy xuống 50% chiều cao màn hình */
-        transform: translateY(-50%);
-        /* Căn giữa chính xác theo chiều dọc */
-        width: 280px;
-        background: rgba(15, 23, 42, 0.85);
-        /* Màu tối mờ */
-        border: 2px solid #fbbf24;
-        /* Viền màu vàng như ngọc rồng */
-        border-radius: 15px;
-        padding: 20px;
-        color: white;
-        backdrop-filter: blur(10px);
-        /* Hiệu ứng kính mờ */
-        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
-        z-index: 1000;
-    }
-
-    #leaderboard-panel h3 {
-        text-align: center;
-        color: #fbbf24;
-        margin-top: 0;
-        text-transform: uppercase;
-        border-bottom: 1px solid #fbbf24;
-        padding-bottom: 10px;
-    }
-
-    #leaderboard-list {
-        margin: 15px 0;
-        font-family: 'Arial', sans-serif;
-    }
-
-    .leader-item {
-        padding: 8px;
-        border-bottom: 1px solid #334155;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    #clear-btn {
-        width: 100%;
-        background: #ef4444;
-        border: none;
-        padding: 10px;
-        color: white;
-        border-radius: 5px;
-        cursor: pointer;
-        font-weight: bold;
-    }
-
-    #live-score-panel {
-        position: fixed;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 250px;
-        background: rgba(15, 23, 42, 0.9);
-        border: 2px solid #3b82f6;
-        /* Viền xanh dương để phân biệt với bảng trái */
-        border-radius: 15px;
-        padding: 20px;
-        color: white;
-        text-align: center;
-        backdrop-filter: blur(10px);
-        display: none;
-        /* Mặc định ẩn, chỉ hiện khi nhập tên */
-        z-index: 1000;
-    }
-
-    .score-row {
-        display: flex;
-        justify-content: space-between;
-        margin: 10px 0;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    /* Hiệu ứng nổi bật cho XP */
-    #live-score-panel {
-        position: fixed;
-        right: 20px;
-        top: 50%;
-        transform: translateY(-50%);
-        width: 250px;
-        background: rgba(15, 23, 42, 0.9);
-        border: 2px solid #3b82f6;
-        /* Viền xanh dương để phân biệt với bảng trái */
-        border-radius: 15px;
-        padding: 20px;
-        color: white;
-        text-align: center;
-        backdrop-filter: blur(10px);
-        display: none;
-        /* Mặc định ẩn, chỉ hiện khi nhập tên */
-        z-index: 1000;
-    }
-
-    .score-row {
-        display: flex;
-        justify-content: space-between;
-        margin: 10px 0;
-        font-size: 18px;
-        font-weight: bold;
-    }
-
-    /* bảng cài đặt */
-    #settings-icon {
-        position: fixed;
-        bottom: 20px;
-        right: 20px;
-        font-size: 30px;
-        cursor: pointer;
-        z-index: 2000;
-    }
-
-    #settings-panel {
-        position: fixed;
-        bottom: 60px;
-        right: 20px;
-        background: #1e293b;
-        padding: 15px;
-        border-radius: 10px;
-        color: white;
-        display: none;
-        /* Ẩn mặc định */
-        z-index: 2000;
-    }
-
-    #settings-panel label {
-        display: block;
-        margin: 10px 0;
-    }
-</style>
 
 <body>
-    <!-- Bảng vật phẩm phía trên điểm số -->
-    <div id="item-panel"
-        style="position: fixed; right: 20px; top: 15%; width: 250px; background: rgba(15, 23, 42, 0.9); border: 2px solid #fbbf24; border-radius: 15px; padding: 15px; color: white; text-align: center; z-index: 1000;">
-        <h3>🎒 VẬT PHẨM</h3>
-        <div style="display: flex; justify-content: space-around; margin-top: 10px;">
-            <!-- Đồng hồ thời gian -->
-            <div id="item-clock" onclick="useItem('clock')" style="cursor: pointer; opacity: 0.3; transition: 0.3s;">
-                <div style="font-size: 2rem;">⌛</div>
-                <span style="font-size: 0.8rem;">+10s</span>
-            </div>
-            <!-- Đậu thần -->
-            <div id="item-senzu" onclick="useItem('senzu')" style="cursor: pointer; opacity: 0.3; transition: 0.3s;">
-                <div style="font-size: 2rem;">🫘</div>
-                <span style="font-size: 0.8rem;">+5 XP</span>
-            </div>
-        </div>
-    </div>
-    <!-- Bảng xếp hạng bên trái -->
-    <div id="leaderboard-panel">
-        <h3>🏆 XẾP HẠNG</h3>
-        <div id="leaderboard-list"></div>
-        <button id="clear-btn" onclick="clearAllData()">XÓA DỮ LIỆU</button>
-    </div>
-    <div class="main-layout">
-        <!-- Bảng theo dõi điểm thời gian thực bên phải -->
-        <div id="live-score-panel">
-            <h3>📊 ĐIỂM SỐ HIỆN TẠI</h3>
-            <div class="score-row">
-                <span>Tên:</span>
-                <span id="display-name">---</span>
-            </div>
-            <div class="score-row">
-                <span>XP:</span>
-                <span id="display-xp">0</span>
-            </div>
-        </div>
-        <!-- Khung Game ở giữa -->
-        <div id="game-area">
-            <!-- Nội dung game của bạn -->
-        </div>
-    </div>
-    <!-- Thêm phần này vào sau thẻ mở body -->
+    <!-- Màn hình Đăng nhập (Hiện đầu tiên) -->
     <div id="login-overlay" class="overlay show">
         <div class="modal">
             <h2>NHẬP TÊN ANH HÙNG</h2>
-            <input type="text" id="player-name" placeholder="Tên của bạn..."
-                style="padding: 10px; width: 80%; border-radius: 5px; margin-bottom: 10px;">
+            <input type="text" id="player-name" placeholder="Tên của bạn...">
             <button onclick="startGame()">Bắt đầu</button>
         </div>
     </div>
 
+    <!-- Khu vực Game Chính -->
     <div class="game-container">
-        <!-- Khu vực hiển thị Boss và Thanh Máu -->
         <div class="boss-section">
             <div class="boss-info">
                 <span id="boss-name">BOSS: FRIEZA (MÀN 1)</span>
@@ -564,10 +336,8 @@
             </div>
         </div>
 
-        <!-- Thanh trạng thái (Thời gian & Ngọc Rồng) -->
         <div class="status-bar">
             <div class="timer">Thời gian: <span id="time-left">60</span>s</div>
-
             <div class="dragon-balls-collection">
                 <div class="ball-slot" id="ball-1">1⭐</div>
                 <div class="ball-slot" id="ball-2">2⭐</div>
@@ -579,44 +349,90 @@
             </div>
         </div>
 
-        <!-- Lưới bài -->
         <div class="game-grid" id="game-grid"></div>
     </div>
 
-    <!-- Thông báo kết quả và triệu hồi Rồng Thần -->
+    <!-- Container chứa các bảng phụ (Responsive gộp chung ở mobile) -->
+    <div class="mobile-panels-container">
+        <!-- Bảng xếp hạng -->
+        <div id="leaderboard-panel" class="side-panel">
+            <h3 class="panel-title gold">🏆 XẾP HẠNG</h3>
+            <div id="leaderboard-list"></div>
+            <button id="clear-btn" onclick="clearAllData()">XÓA DỮ LIỆU</button>
+        </div>
+
+        <!-- Bảng Vật Phẩm -->
+        <div id="item-panel" class="side-panel">
+            <h3 class="panel-title gold">🎒 VẬT PHẨM</h3>
+            <div class="items-wrap">
+                <div id="item-clock" class="item-btn" onclick="useItem('clock')">
+                    <div style="font-size: 1.5rem;">⌛</div>
+                    <span style="font-size: 0.7rem;">+10s</span>
+                </div>
+                <div id="item-senzu" class="item-btn" onclick="useItem('senzu')">
+                    <div style="font-size: 1.5rem;">🫘</div>
+                    <span style="font-size: 0.7rem;">+5 XP</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng Điểm -->
+        <div id="live-score-panel" class="side-panel">
+            <h3 class="panel-title blue">📊 ĐIỂM SỐ</h3>
+            <div class="score-row"><span>Tên:</span> <span id="display-name">---</span></div>
+            <div class="score-row"><span>XP:</span> <span id="display-xp">0</span></div>
+        </div>
+    </div>
+
+    <!-- Thông báo kết quả / Rồng Thần -->
     <div class="overlay" id="overlay">
         <div class="modal">
             <h2 id="modal-title">Kết quả</h2>
             <p id="modal-message"></p>
-
-            <!-- Chỗ chứa Rồng Thần hiện có -->
             <div id="shenron-container" class="shenron-pic">🐉</div>
-
-            <!-- THÊM THẺ GIF MỚI VÀO ĐÂY -->
-            <img id="victory-gif" src="" alt="Victory"
-                style="display:none; width: 100%; border-radius: 8px; margin: 10px 0;">
-
+            <img id="victory-gif" src="" alt="Victory" style="display:none; width: 100%; border-radius: 8px; margin: 10px 0;">
             <button id="modal-btn">Thử lại</button>
         </div>
     </div>
-    <div id="stage-notification"
-        style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 20px; border-radius: 10px; z-index: 1000; text-align: center; font-size: 20px;">
-    </div>
-    <!-- Bảng cài đặt -->
-    <!-- Nút răng cưa -->
-    <div id="settings-icon">⚙️</div>
 
-    <!-- Bảng cài đặt âm thanh -->
+    <!-- Cài đặt & Thông báo nhỏ -->
+    <div id="stage-notification" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(0,0,0,0.8); color: white; padding: 15px; border-radius: 10px; z-index: 1000; text-align: center; font-size: 16px;"></div>
+    
+    <div id="settings-icon" onclick="toggleSettings()">⚙️</div>
     <div id="settings-panel">
-        <h3>CÀI ĐẶT ÂM THANH</h3>
+        <h3 style="font-size: 1rem; text-align: center; margin-bottom: 10px;">ÂM THANH</h3>
         <label>Nhạc nền: <input type="range" id="vol-bg" min="0" max="1" step="0.1" value="0.2"></label>
         <label>Lật bài: <input type="range" id="vol-flip" min="0" max="1" step="0.1" value="1.0"></label>
         <label>Khớp bài: <input type="range" id="vol-match" min="0" max="1" step="0.1" value="0.8"></label>
         <label>Ngọc rồng: <input type="range" id="vol-ball" min="0" max="1" step="0.1" value="0.9"></label>
-        <button onclick="document.getElementById('settings-panel').style.display='none'">Đóng</button>
+        <button onclick="toggleSettings()">Đóng</button>
     </div>
 
+    <!-- Javascript -->
+    <script>
+        function toggleSettings() {
+            var panel = document.getElementById('settings-panel');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+            } else {
+                panel.style.display = 'none';
+            }
+        }
+        
+        // Fix nhỏ cho JS để tương thích với HTML mới
+        const originalStartGame = window.startGame;
+        window.startGame = function() {
+            if(typeof originalStartGame === 'function') {
+                originalStartGame();
+            } else {
+                // Tạm ẩn modal đăng nhập nếu script.js chưa load kịp hoặc bị lỗi
+                document.getElementById('login-overlay').classList.remove('show');
+                document.getElementById('live-score-panel').style.display = 'block';
+                let name = document.getElementById('player-name').value || 'Khách';
+                document.getElementById('display-name').innerText = name;
+            }
+        }
+    </script>
     <script src="script.js" defer></script>
 </body>
-
 </html>
